@@ -50,18 +50,40 @@ mySum = foldl (+) 0
 
 --Implementation of map using foldr
 myMap1 :: (a->b)->[a]->[b]
-myMap1 f = foldr (\x xs-> (f x):xs)
+myMap1 f = foldr (\x xs-> (f x):xs) []
+
+--elem using foldr
+myElem :: (Eq a) => a -> [a] -> Bool
+myElem e = foldr (\x accum-> accum || x == e) False
+
+--max using foldr1
+myMax :: (Ord a) => [a] -> a
+myMax [] = error "Can't get max of an empty list!"
+myMax xs = foldr1 (\x accum -> if x > accum then x else accum) xs
+
+myReverse :: [a] -> [a]
+myReverse = foldl (\accum x -> x:accum) []
+
+myProduct :: (Num a) => [a] -> a
+myProduct = foldr1 (*)
+
+myFilter1 :: (a->Bool) -> [a] -> [a]
+myFilter1 f = foldr (\x acc-> if f x then x:acc else acc) []
+
+myLast :: [a] -> a
+myLast = foldr1 (\_ acc->acc)
+
+--how many elements does it take fo the sum of the square roots of all natural
+--numbers to exceed 1,000?
+findSumSqrGreater :: Int
+findSumSqrGreater = length $ takeWhile (<1000) $ scanl (+) 0 $ map sqrt [1,2..]
+
+--find sum of all odd squares less than 10,000
+sumOdds2 :: Int
+sumOdds2 = sum . takeWhile(<10000) $ map (^2) [1,3..]
 
 main = do 
-    print $ myZipWith (+) [1..5][2..]
-    print $ myFlip (/) 2 6
-    print $ (/) 2 6
-    print $ take 5 (myMap (+10) [1..])
-    print $ myFilter even [-5..5]
-    print $ findLargest
-    print $ findLargestTwo
-    print $ sumOdds
-    print $ sumOdds1
-    print $ getCollatz 30
-    print $ findCollatz
-    print $ mySum [1..6]
+    print $ myFilter1 (odd) [1..6]
+    print $ myLast [1..6]
+    print $ findSumSqrGreater
+    print $ sumOdd2
