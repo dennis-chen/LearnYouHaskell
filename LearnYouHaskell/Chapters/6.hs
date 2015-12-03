@@ -47,10 +47,9 @@ stringToDigits :: String -> [Int]
 -- takes string and returns list of digits in string
 stringToDigits = map C.digitToInt . filter C.isDigit
 
+convertPBook :: [(String,String)] -> [(String,[Int])]
+convertPBook = map (\(k,v) -> (k, stringToDigits v))
+
 main = do 
-    print $ countWords "hi my name is"
-    print $ "fgh" `isIn` ['a'..]
-    print $ decode 3 $ encode 3 "hey mark"
-    print $ findNumWithSum 38
-    print $ lookupKey "john" getAssocList
-    print $ lookupKey' "potato" getAssocList
+    print $ getAssocList
+    print $ convertPBook getAssocList
