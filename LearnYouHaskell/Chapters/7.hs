@@ -1,4 +1,5 @@
 module Main where
+import qualified Data.Map as M
 
 data Point = Point Float Float 
     deriving (Show)
@@ -34,14 +35,67 @@ data Vector a = Vector a a a deriving (Show)
 vplus :: (Num a) => Vector a -> Vector a -> Vector a
 vplus (Vector x1 y1 z1) (Vector x2 y2 z2) = Vector (x1+x2) (y1+y2) (z1+z2)
 
+data Day = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday deriving (Ord, Show, Read, Eq, Bounded, Enum)
+
+--Lockers
+data State = Empty | Taken deriving (Show)
+type LockerNum = Int
+type LockerCode = String
+type ErrMsg = String
+type Locker = (State, LockerCode)
+type Lockers = M.Map Int Locker
+
+getLockers :: Lockers
+getLockers = M.fromList $ zip [1..20] $ zip (repeat Taken) (repeat "1234")
+
+assignLocker :: Lockers->LockerNum->Either ErrMsg LockerCode
+assignLocker l n = case M.lookup n l of
+    Nothing -> Left "Couldn't find locker number!"
+    Just (Taken,_) -> Left "Locker already taken!"
+    Just (Empty,code) -> Right code
+
+data Mylist a = Emptylist | Cons a (Mylist a) deriving (Show)
+
+listToMylist :: [a] -> Mylist a
+listToMylist = foldr Cons Emptylist
+
+data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show)
+
+treeInsert :: (Ord a)=>a->Tree a->Tree a
+treeInsert y EmptyTree = Node y EmptyTree EmptyTree
+treeInsert y (Node x l r)
+    | x <= y = Node x l (treeInsert y r)
+    | x > y = Node x (treeInsert y l) r
+
+listToTree :: (Ord a)=>[a]->Tree a
+listToTree = foldr treeInsert EmptyTree
+
+treeElem :: (Ord a)=>a->Tree a->Bool
+treeElem x EmptyTree = False
+treeElem x (Node y l r) = (x == y) || ((treeElem x l) || (treeElem x r))
+
+class MyFunctor f where 
+    myMap :: (a->b)-> f a -> f b
+
+instance MyFunctor [] where 
+    myMap = map
+
+instance MyFunctor Tree where
+    myMap f (EmptyTree) = EmptyTree
+    myMap f (Node x l r) = Node (f x) (myMap f l) (myMap f r)
+
+instance MyFunctor Maybe where
+    myMap f Nothing = Nothing
+    myMap f (Just x) = Just (f x)
+
+instance MyFunctor (Either a) where
+    myMap f (Left x) = Left x
+    myMap f (Right x) = Right (f x)
+
 main = do 
-    print $ "hello"
-    print $ area $ Circle (Point 0 0) 5
-    print $ area $ Rectangle (Point 0 0) (Point 4 5)
-    print $ Rectangle (Point 0 0) (Point 4 5)
-    print $ getConcentric
-    print $ nudge (Circle (Point 0 0) 5) 3 5
-    print $ originCircle 4
-    print $ originRectangle 4 8
-    print $ Person {firstName="a",lastName="b",age=3,height=0.5,phoneNumber="11",flavor="bleh"}
-    print $ vplus (Vector 0 0 0.5) (Vector 1 2 3)
+    print $ 1
+    print $ myMap (+3) [1..5]
+    print $ myMap (*2)  $ listToTree [1,4,2,3]
+    print $ myMap (+1) $ Just 3
+    print $ (Left 1 :: Either Int String)
+    print $ myMap (++"blah") (Right "hi" :: Either Int String)
