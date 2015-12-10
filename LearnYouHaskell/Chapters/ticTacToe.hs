@@ -14,15 +14,27 @@ allCoords :: Board -> [Maybe (Maybe Mark)]
 allCoords b = map ((flip M.lookup) b) coords
     where coords = [(x,y) | x<-[0..2], y<-[0..2]]
 
-toStrings :: (String a) => Board -> [a]
-toString b = map spaceToStr $ allCoords b 
-    where spaceToStr = (\x -> case (x) of Nothing -> ' '
-                                          Just Nothing -> ' '
-                                          Just (Just X) -> 'X'
-                                          Just (Just O) -> 'O')
+interleave :: [a] -> [a] -> [a]
+interleave xs [] = xs
+interleave [] ys = ys
+interleave (x:xs) (y:ys) = x : y : interleave xs ys
+
+getRow :: Int -> Board -> [Maybe (Maybe Mark)]
+getRow n b = map ((flip M.lookup) b) coords
+    where coords = [(x,y) | x<-[n], y<-[0..2]]
+
+getRowStr :: Int -> Board -> String
+getRowStr n b = interleave "||||" (map markToString $ getRow n b)
+    where markToString = (\x -> case (x) of Nothing -> ' '
+                                            Just Nothing -> ' '
+                                            Just (Just X) -> 'X'
+                                            Just (Just O) -> 'O')
+
+toStrings :: Board -> [String]
+toStrings b = interleave (map ((flip getRowStr) b) [0..2]) (take 2 $ repeat "-------")
+
+printBoard :: Board -> IO ()
+printBoard b = mapM_ print $ toStrings b
 
 main = do 
-    print $ toString $ initialBoard
-    print $ toString $ M.insert (0,0) (Just X) initialBoard
-    print $ allCoords initialBoard
-    putStrLn $ toString initialBoard
+    printBoard initialBoard
