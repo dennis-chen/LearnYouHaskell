@@ -1,7 +1,8 @@
 module Main where
 import qualified Data.Map as M
+import qualified Data.Char as C
 
-data Mark = X | O deriving (Show)
+data Mark = X | O deriving (Show,Eq)
 
 type Board = M.Map (Int,Int) (Maybe Mark)
 
@@ -36,5 +37,45 @@ toStrings b = interleave (map ((flip getRowStr) b) [0..2]) (take 2 $ repeat "---
 printBoard :: Board -> IO ()
 printBoard b = mapM_ print $ toStrings b
 
+type Err = String
+
+parseCommand :: String -> Either Err (Int,Int)
+parseCommand (x:',':y:[]) = if elem (a,b) validCoords 
+    then Right (a,b)
+    else Left "Invalid coordinates! Enter coords from 0 to 2!"
+    where validCoords = [(x,y) | x<-[0..2],y<-[0..2]]
+          a = C.digitToInt x
+          b = C.digitToInt y
+parseCommand _ = Left "Invalid format!"
+
+getCommand :: IO (Int,Int)
+getCommand = do 
+             line <- getLine
+             case parseCommand line of Right (x,y) -> return (x,y)
+                                       Left err -> do
+                                        print $ err
+                                        getCommand
+
+isValid :: (Int,Int)->Board->Bool
+isValid c b = c `elem` map (\(k,v)->k) (filter (\(k,v) -> v==Nothing) $ M.toList b)
+
+
+temp :: Board->[((Int,Int),Maybe Mark)]
+temp b = filter (\(k,v) -> v == Nothing) $ M.toList b
+
+placeMark :: Mark->Board->(Int,Int)->Board
+placeMark m b c = M.insert c (Just m) b
+
+playGame :: Board -> IO()
+playGame b = do 
+    printBoard b
+    print "Enter coordinate where you would like to place your X as x,y"
+    coords <- getCommand
+    if isValid coords b then
+        playGame (placeMark X b coords)
+    else do
+        print "Already taken!"
+        playGame b
+
 main = do 
-    printBoard initialBoard
+    playGame initialBoard
